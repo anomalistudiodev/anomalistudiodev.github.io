@@ -344,7 +344,6 @@
     sessionStorage.removeItem('anomaliAdminSession');
     location.reload();
   });
-  if (sessionStorage.getItem('anomaliAdminSession') === '1') showApp();
 
   /* ---------- nav ---------- */
   document.querySelectorAll('.nav-item[data-view]').forEach(item => {
@@ -641,13 +640,18 @@
   });
 
   function renderAll(){
-    renderOverview();
-    renderLeads();
-    renderTasks();
-    renderDynamicFields();
-    fillContentForm();
-    fillPricingForm();
+    try { renderOverview(); } catch(e) { console.error('renderOverview failed', e); }
+    try { renderLeads(); } catch(e) { console.error('renderLeads failed', e); }
+    try { renderTasks(); } catch(e) { console.error('renderTasks failed', e); }
+    try { renderDynamicFields(); } catch(e) { console.error('renderDynamicFields failed', e); }
+    try { fillContentForm(); } catch(e) { console.error('fillContentForm failed', e); }
+    try { fillPricingForm(); } catch(e) { console.error('fillPricingForm failed', e); }
   }
+
+  /* ---------- auto-login if a session already exists (must run LAST, after
+     every function/const above is defined, since it triggers renderAll()
+     synchronously) ---------- */
+  if (sessionStorage.getItem('anomaliAdminSession') === '1') showApp();
 })();
 </script>
 
