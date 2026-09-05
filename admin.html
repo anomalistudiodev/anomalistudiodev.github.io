@@ -229,6 +229,7 @@
           <div class="field"><label>YouTube</label><input type="url" id="edYoutube" placeholder="https://youtube.com/@anomali"></div>
         </div>
       </div>
+      <div id="dynamicFieldsContainer"></div>
       <div class="save-bar">
         <span class="save-msg" id="saveMsg">✓ Kaydedildi</span>
         <button class="btn btn-solid" id="saveContentBtn" style="width:auto">Değişiklikleri kaydet</button>
@@ -465,6 +466,85 @@
 
   /* ---------- content editor ---------- */
   function getContent(){ try { return JSON.parse(localStorage.getItem(CONTENT_KEY) || '{}'); } catch(e){ return {}; } }
+
+  // Every entry here becomes an editable textbox on the "Site içeriği" tab,
+  // grouped by category, and maps 1:1 to a data-ekey="..." attribute
+  // somewhere in index.html. To make a NEW piece of site text editable in
+  // the future: tag the element in index.html with data-ekey="your.key",
+  // then add one line here — no other code changes needed.
+  const EDITABLE_FIELDS = [
+    { key: 'hero.badge1', label: 'Hero rozeti 1', group: 'Hero rozetleri' },
+    { key: 'hero.badge2', label: 'Hero rozeti 2', group: 'Hero rozetleri' },
+    { key: 'hero.badge3', label: 'Hero rozeti 3', group: 'Hero rozetleri' },
+
+    { key: 'svc.1.title', label: '1. Hizmet başlığı', group: 'Hizmetler' },
+    { key: 'svc.1.desc', label: '1. Hizmet açıklaması', group: 'Hizmetler', long: true },
+    { key: 'svc.2.title', label: '2. Hizmet başlığı', group: 'Hizmetler' },
+    { key: 'svc.2.desc', label: '2. Hizmet açıklaması', group: 'Hizmetler', long: true },
+    { key: 'svc.3.title', label: '3. Hizmet başlığı', group: 'Hizmetler' },
+    { key: 'svc.3.desc', label: '3. Hizmet açıklaması', group: 'Hizmetler', long: true },
+    { key: 'svc.4.title', label: '4. Hizmet başlığı', group: 'Hizmetler' },
+    { key: 'svc.4.desc', label: '4. Hizmet açıklaması', group: 'Hizmetler', long: true },
+    { key: 'svc.5.title', label: '5. Hizmet başlığı', group: 'Hizmetler' },
+    { key: 'svc.5.desc', label: '5. Hizmet açıklaması', group: 'Hizmetler', long: true },
+    { key: 'svc.6.title', label: '6. Hizmet başlığı', group: 'Hizmetler' },
+    { key: 'svc.6.desc', label: '6. Hizmet açıklaması', group: 'Hizmetler', long: true },
+    { key: 'svc.7.title', label: '7. Hizmet başlığı', group: 'Hizmetler' },
+    { key: 'svc.7.desc', label: '7. Hizmet açıklaması', group: 'Hizmetler', long: true },
+
+    { key: 'manifesto.lead', label: 'Giriş cümlesi', group: 'Manifesto', long: true },
+    { key: 'manifesto.body', label: 'Ana paragraf', group: 'Manifesto', long: true },
+    { key: 'manifesto.p1.title', label: '1. ilke başlığı', group: 'Manifesto' },
+    { key: 'manifesto.p1.desc', label: '1. ilke açıklaması', group: 'Manifesto' },
+    { key: 'manifesto.p2.title', label: '2. ilke başlığı', group: 'Manifesto' },
+    { key: 'manifesto.p2.desc', label: '2. ilke açıklaması', group: 'Manifesto' },
+    { key: 'manifesto.p3.title', label: '3. ilke başlığı', group: 'Manifesto' },
+    { key: 'manifesto.p3.desc', label: '3. ilke açıklaması', group: 'Manifesto' },
+
+    { key: 'trust.1', label: 'Sektör 1', group: 'Hazır olduğumuz sektörler' },
+    { key: 'trust.2', label: 'Sektör 2', group: 'Hazır olduğumuz sektörler' },
+    { key: 'trust.3', label: 'Sektör 3', group: 'Hazır olduğumuz sektörler' },
+    { key: 'trust.4', label: 'Sektör 4', group: 'Hazır olduğumuz sektörler' },
+    { key: 'trust.5', label: 'Sektör 5', group: 'Hazır olduğumuz sektörler' },
+    { key: 'trust.6', label: 'Sektör 6', group: 'Hazır olduğumuz sektörler' },
+
+    { key: 'port.1.title', label: '1. Kart başlığı', group: 'Yaklaşım örnekleri (portfolyo)' },
+    { key: 'port.1.desc', label: '1. Kart açıklaması', group: 'Yaklaşım örnekleri (portfolyo)', long: true },
+    { key: 'port.2.title', label: '2. Kart başlığı', group: 'Yaklaşım örnekleri (portfolyo)' },
+    { key: 'port.2.desc', label: '2. Kart açıklaması', group: 'Yaklaşım örnekleri (portfolyo)', long: true },
+    { key: 'port.3.title', label: '3. Kart başlığı', group: 'Yaklaşım örnekleri (portfolyo)' },
+    { key: 'port.3.desc', label: '3. Kart açıklaması', group: 'Yaklaşım örnekleri (portfolyo)', long: true },
+    { key: 'port.4.title', label: '4. Kart başlığı', group: 'Yaklaşım örnekleri (portfolyo)' },
+    { key: 'port.4.desc', label: '4. Kart açıklaması', group: 'Yaklaşım örnekleri (portfolyo)', long: true },
+    { key: 'port.5.title', label: '5. Kart başlığı', group: 'Yaklaşım örnekleri (portfolyo)' },
+    { key: 'port.5.desc', label: '5. Kart açıklaması', group: 'Yaklaşım örnekleri (portfolyo)', long: true },
+    { key: 'port.6.title', label: '6. Kart başlığı', group: 'Yaklaşım örnekleri (portfolyo)' },
+    { key: 'port.6.desc', label: '6. Kart açıklaması', group: 'Yaklaşım örnekleri (portfolyo)', long: true },
+
+    { key: 'footer.tag', label: 'Footer sloganı', group: 'Footer' }
+  ];
+
+  function renderDynamicFields(){
+    const container = document.getElementById('dynamicFieldsContainer');
+    const groups = {};
+    EDITABLE_FIELDS.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
+    container.innerHTML = Object.keys(groups).map(groupName => `
+      <div class="panel">
+        <div class="panel-head"><h3>${groupName}</h3></div>
+        <div class="editor-grid">
+          ${groups[groupName].map(f => `
+            <div class="field">
+              <label>${f.label}</label>
+              ${f.long
+                ? `<textarea rows="2" data-field-key="${f.key}"></textarea>`
+                : `<input type="text" data-field-key="${f.key}">`}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
   function fillContentForm(){
     const c = getContent();
     document.getElementById('edEmail').value = c.email || '';
@@ -477,8 +557,16 @@
     document.getElementById('edTwitter').value = c.twitter || '';
     document.getElementById('edLinkedin').value = c.linkedin || '';
     document.getElementById('edYoutube').value = c.youtube || '';
+    const fields = c.fields || {};
+    document.querySelectorAll('[data-field-key]').forEach(el => {
+      el.value = fields[el.dataset.fieldKey] || '';
+    });
   }
   document.getElementById('saveContentBtn').addEventListener('click', () => {
+    const fields = {};
+    document.querySelectorAll('[data-field-key]').forEach(el => {
+      fields[el.dataset.fieldKey] = el.value.trim();
+    });
     const data = {
       email: document.getElementById('edEmail').value.trim(),
       phone: document.getElementById('edPhone').value.trim(),
@@ -489,7 +577,8 @@
       instagram: document.getElementById('edInstagram').value.trim(),
       twitter: document.getElementById('edTwitter').value.trim(),
       linkedin: document.getElementById('edLinkedin').value.trim(),
-      youtube: document.getElementById('edYoutube').value.trim()
+      youtube: document.getElementById('edYoutube').value.trim(),
+      fields
     };
     localStorage.setItem(CONTENT_KEY, JSON.stringify(data));
     const msg = document.getElementById('saveMsg');
@@ -555,6 +644,7 @@
     renderOverview();
     renderLeads();
     renderTasks();
+    renderDynamicFields();
     fillContentForm();
     fillPricingForm();
   }
